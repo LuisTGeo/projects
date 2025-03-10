@@ -1,0 +1,27 @@
+# Main model for answering questions
+main_model: "llama3.2"
+
+
+# Models used for embedding generation
+embed_models:
+  - "nomic-embed-text"
+  - "mxbai-embed-large"
+#  - "all-minilm"
+#  - "snowflake-arctic-embed"
+#  - "bge-m3"
+#  - "bge-large"
+#  - "llama3.1"
+#  - "llama3.2"  # Adding another model version for testing
+
+# Document source
+source_doc_url: "https://arxiv.org/html/2408.17024v1"
+source_doc_char_limit: 500
+
+# Questions to be answered
+questions:
+  - "What is Inkuba-Instruct?"
+  - "What is InkubaLM?"
+#  - "How many parameters does TinyLlama have?"
+
+# Chunking configuration
+chunk_size: 500
