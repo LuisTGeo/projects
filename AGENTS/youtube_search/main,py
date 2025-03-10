@@ -1,0 +1,79 @@
+import asyncio
+import aiohttp
+import json
+import os
+from pydantic import BaseModel
+from typing import List
+from dirtyjson import loads as djson_parse
+from video_search_tool import get_topic, get_details, video_search_tool, video_details_tool
+from prompts import titleprompt, descriptionprompt, announcementprompt
+import ollama
+
+# Pydantic models
+class VideoDetails(BaseModel):
+    video_string: str
+    title: str
+    view_count: int
+    like_count: int
+    comment_count: int
+    subscriber_count: int
+    score: float
+
+# Function to sort videos by score
+def sort_videos_by_score(videos: List[VideoDetails]) -> List[VideoDetails]:
+    return sorted(videos, key=lambda x: x.score, reverse=True)[:15]
+
+# Function to display videos with scores
+def display_videos(videos: List[VideoDetails]):
+    for index, video in enumerate(videos):
+        print(f"Video {index + 1}: {video.score}")
+        print(video.video_string)
+
+# Function to generate content using Ollama
+async def generate_with_ollama(model: str, system_prompt: str, prompt: str, format_type: str = "json") -> dict:
+    response = await ollama.generate(
+        model=model,
+        system=system_prompt,
+        format=format_type,
+        prompt=prompt
+    )
+    return json.loads(response['response'])
+
+async def main():
+    # Static topic and details for testing
+    topic = "ai models local ollama"
+    details = ("You are going to create a new model for ollama. "
+               "Use the modelfile to create an AI model in creative ways "
+               "and do interesting things using parameters, system prompt, and more.")
+
+    # Fetch video search results and their details
+    videos = await video_search_tool(topic, max_results=50)
+    scored_videos = []
+
+    for video in videos:
+        video_details = await video_details_tool(video)
+        scored_videos.append(video_details)
+
+    # Sort videos by score and select top 15
+    top_videos = sort_videos_by_score(scored_videos)
+    display_videos(top_videos)
+
+    # Prepare titles using Ollama
+    title_prompt = f"topic: {topic}\nDescription: {details}\nSuccessful titles:\n{''.join([video.title for video in top_videos])}"
+    title_list = await generate_with_ollama("llama3", titleprompt, title_prompt)
+    print(f"Successful Titles for the topic: {topic}\n\n{', '.join(title_list['titles'])}")
+
+    # Prepare new description using Ollama
+    description_prompt = f"topic: {topic}\nDescription: {details}\nOutput as JSON, using this template: {{'output': 'description of the video'}}"
+    new_description = await generate_with_ollama("llama3", descriptionprompt, description_prompt)
+    parsed_description = djson_parse(new_description['output'])
+    print(f"Description for the video based on: {details}\n{parsed_description}")
+
+    # Prepare email announcement using Ollama
+    email_prompt = f"topic: {topic}\nDescription: {parsed_description}\nOutput as JSON, using this template: {{'output': 'text of the email'}}"
+    email = await generate_with_ollama("llama3", announcementprompt, email_prompt)
+    parsed_email = djson_parse(email['output'])
+    print(f"Email for the video based on the generated description: \n{parsed_email}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
