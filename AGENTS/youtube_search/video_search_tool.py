@@ -49,7 +49,7 @@ async def video_search_tool(topic: str, max_results: int = 5) -> List[VideoSearc
     results = []
     topic_encoded = topic.replace(' ', '+')  # Manually encoding for simplicity
     # api_key = os.getenv('YOUTUBE_API_KEY')  # Using environment variable for API key
-    api_key ="AIzaSyCRRhxYPi_6xTFYa5_D88f9o6myX5GLsYY"
+    api_key ="from-google-cloud-zaSyCRRhxYPi_6xTFYa5_D88f9o6my"
     url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults={max_results}&q={topic_encoded}&type=video&key={api_key}"
 
     async with aiohttp.ClientSession() as session:
@@ -80,7 +80,7 @@ async def video_search_tool(topic: str, max_results: int = 5) -> List[VideoSearc
 # Function to get video details
 async def video_details_tool(video: VideoSearchResults) -> VideoDetails:
     # api_key = os.getenv('YOUTUBE_API_KEY')
-    api_key = "AIzaSyCRRhxYPi_6xTFYa5_D88f9o6myX5GLsYY"
+    api_key = "from-google-cloud-zaSyCRRhxYPi_6xTFYa5_D88f9o6myY"
     video_url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id={video.id}&key={api_key}"
     channel_url = f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={video.channel_id}&key={api_key}"
 
